@@ -221,12 +221,12 @@ class midiFile:
             if(msg.time != 0):
                 time = time + msg.time
             if(msg.type == 'note_on'):
-                if(msg.channel == 1):
+                if(msg.channel == 0):
                     #print msg
                     x = action(msg.note, msg.channel, time)
                     self.actionList.append(x) 
             elif(msg.type == 'note_off'):
-                if(msg.channel == 1):
+                if(msg.channel == 0):
                     #print msg
                     for act in self.actionList:
                         if (msg.note == act.note and act.endtime == 0 and msg.channel == act.channel):
