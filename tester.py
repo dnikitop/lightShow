@@ -9,54 +9,6 @@ from srslib_framework.msg import MsgUpdateToteLights
 from mido import MidiFile
 import math
 
-def killAll(pub1, pub2):
-    newMsg = MsgBodyLightsState()
-    newMsg1 = MsgBodyLightsState()
-    newMsg2 = MsgUpdateToteLights()
-    mssg = MsgUpdateBodyLights()
-    newMsg.lightCmd = 1
-    newMsg.entity = 204
-    mssg.bodyLightUpdates.append(newMsg)
-    pub1.publish(mssg)
-
-    newMsg1.lightCmd = 1
-    newMsg1.entity = 205
-    mssg2 = MsgUpdateBodyLights()
-    mssg2.bodyLightUpdates.append(newMsg1)
-    pub1.publish(mssg2)
-    newMsg2.frequency = 3
-    newMsg2.startColor.r = 0
-    newMsg2.startColor.g = 0
-    newMsg2.startColor.b = 0
-    newMsg2.startColor.a = 0
-    newMsg2.endColor.r = 0
-    newMsg2.endColor.g = 0
-    newMsg2.endColor.b = 0
-    newMsg2.endColor.a = 0
-
-    newMsg2.lightCmd = 1
-    newMsg2.startSegment.x = 0
-    newMsg2.startSegment.y = 0
-    newMsg2.startSegment.z = 0
-    newMsg2.endSegment.x = 25
-    newMsg2.endSegment.y = 0
-    newMsg2.endSegment.z = 0
-    pub2.publish(newMsg2)
-    newMsg2.startSegment.y = 1
-    newMsg2.endSegment.y = 1
-    pub2.publish(newMsg2)
-    newMsg2.startSegment.z = 1
-    newMsg2.endSegment.z = 1
-    pub2.publish(newMsg2)
-    newMsg2.startSegment.y = 0
-    newMsg2.startSegment.z = 1
-    newMsg2.endSegment.y = 0
-    newMsg2.endSegment.z = 1
-    pub2.publish(newMsg2) 
-  
-
-
-
 class action:
 	def __init__(self, note, channel, starttime):
 		self.note = note
@@ -211,7 +163,7 @@ class event:
 
 
 class midiFile:
-    def __init__(self,filename):
+    def __init__(self,filename, channel):
         self.filename = filename
         mid = MidiFile(filename)
         print (mid.ticks_per_beat)
@@ -221,23 +173,20 @@ class midiFile:
             if(msg.time != 0):
                 time = time + msg.time
             if(msg.type == 'note_on'):
-                if(msg.channel == 1):
-                    #print msg
-                    x = action(msg.note, msg.channel, time)
-                    self.actionList.append(x) 
+            	x = action(msg.note, msg.channel, time)
+                self.actionList.append(x) 
             elif(msg.type == 'note_off'):
-                if(msg.channel == 1):
-                    #print msg
-                    for act in self.actionList:
-                        if (msg.note == act.note and act.endtime == 0 and msg.channel == act.channel):
-                            act.endtime = time
-                            break
+                for act in self.actionList:
+                    if (msg.note == act.note and act.endtime == 0 and msg.channel == act.channel):
+                        act.endtime = time
+                        break
         self.events = []
         for act in self.actionList:
-            self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime))
+        	if(act.channel == channel):
+            	self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime))
         for act in self.actionList:
             for i in range(len(self.events)):
-                if(act.endtime >= self.events[i].time and (i+1 == len(self.events) or act.endtime < self.events[i+1].time)):
+                if(act.endtime >= self.events[i].time and act.channel == channel and(i+1 == len(self.events) or act.endtime < self.events[i+1].time)):
                     self.events.insert(i+1,event(act.note,0,act.endtime,0))
                     break
         for eve in self.events:
@@ -287,7 +236,8 @@ def talker(midiFile):
         eve.printMes()
     midiFile.killAll(pub1,pub2,rate)
 if __name__ == '__main__':
-    first = midiFile("second.mid")
+	channel = 0
+    first = midiFile("second.mid", channel)
     try:
         talker(first)
     except rospy.ROSInterruptException:
