@@ -114,7 +114,7 @@ class event:
         self.rosMessage.endColor.g = 0
         self.rosMessage.endColor.b = 0
         self.rosMessage.endColor.a = 0
-        if(1.0/self.duration < .4):
+        if(1.0/self.duration < .32):
             self.rosMessage.frequency = .32
         else:
             self.rosMessage.frequency = 1.0/self.duration
@@ -189,7 +189,10 @@ class midiFile:
                 print "Meta"
         self.events = []
         for act in self.actionList:
-            self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime, act.channel))
+            if(act.endtime - act.starttime > 2.5):
+            	self.events.append(event(act.note, 1, act.starttime, 2.5, act.channel))
+            else:
+            	self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime, act.channel))
         for act in self.actionList:
             for i in range(len(self.events)):
                 if(act.endtime >= self.events[i].time and(i+1 == len(self.events) or act.endtime < self.events[i+1].time)):
