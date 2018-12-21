@@ -1,0 +1,30 @@
+ntpdate -q time.nist.gov
+
+rostopic pub /drivers/brainstem/cmd/update_body_lights srslib_framework/MsgUpdateBodyLights "bodyLightUpdates:
+- entity: 100
+  lightCmd: 0
+  startColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  endColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  frequency: 0.0"
+
+	rostopic pub /drivers/brainstem/cmd/update_body_lights srslib_framework/MsgUpdateBodyLights "bodyLightUpdates:
+	- entity: 101
+	  lightCmd: 0
+	  startColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+	  endColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+	  frequency: 0.0"
+
+rostopic pub /drivers/brainstem/cmd/update_body_lights srslib_framework/MsgUpdateBodyLights "bodyLightUpdates:
+- entity: 201
+  lightCmd: 0
+  startColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  endColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  frequency: 0.0"
+
+rostopic pub /drivers/brainstem/cmd/update_body_lights srslib_framework/MsgUpdateBodyLights "bodyLightUpdates:
+- entity: 202
+  lightCmd: 0
+  startColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  endColor: {r: 0.0, g: 0.0, b: 0.0, a: 0.0}
+  frequency: 0.0"
+

@@ -117,7 +117,7 @@ class event:
         if(1.0/self.duration < .32):
             self.rosMessage.frequency = .32
         else:
-            self.rosMessage.frequency = 1.0/(self.duration+.03)
+            self.rosMessage.frequency = 1.0/(self.duration+.08)
     def setOffColor(self):
         self.rosMessage.startColor.r = 0
         self.rosMessage.startColor.g = 0
@@ -170,11 +170,11 @@ class midiFile:
     def __init__(self,filename):
         self.filename = filename
         mid = MidiFile(filename)
-        print (mid.ticks_per_beat)
+        #print (mid.ticks_per_beat)
         self.actionList = []
         time = 0
         for msg in mid:
-            print msg
+            #print msg
             if(msg.time != 0):
                 time = time + msg.time
             if(msg.type == 'note_on'):
@@ -183,16 +183,14 @@ class midiFile:
             elif(msg.type == 'note_off'):
                 for act in self.actionList:
                     if (msg.note == act.note and act.endtime == 0 and act.channel == msg.channel):
-                        act.endtime = time
+                        if(time - act.starttime > 2):
+                            act.endtime = act.starttime + 2
+                        else:
+                            act.endtime = time
                         break
-            else:
-                print "Meta"
         self.events = []
         for act in self.actionList:
-            if(act.endtime - act.starttime > 2.5):
-            	self.events.append(event(act.note, 1, act.starttime, 2.5, act.channel))
-            else:
-            	self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime, act.channel))
+            self.events.append(event(act.note, 1, act.starttime, act.endtime - act.starttime, act.channel))
         for act in self.actionList:
             for i in range(len(self.events)):
                 if(act.endtime >= self.events[i].time and(i+1 == len(self.events) or act.endtime < self.events[i+1].time)):
@@ -203,6 +201,7 @@ class midiFile:
             eve.makeActualMessage()
 
     def killAll(self,pub1, pub2, rate, channel):
+        print "Killing all lights"
         self.xevents = []
         self.xevents.append(event(22,0,0,1,channel))
         self.xevents.append(event(24,0,0,1,channel))
@@ -217,74 +216,57 @@ class midiFile:
                 pub1.publish(eve.msgs)
             else:
                 pub2.publish(eve.rosMessage)
-            eve.printMes()
+            #eve.printMes()
+            rate.sleep()
+    def play(self, pub1, pub2, rate, channel):
+        now = rospy.get_time()
+        print "*******************************************************************"
+        for eve in self.events:
+            if(eve.channel == channel):
+                while(rospy.get_time() - now < eve.time ):
+                    rate.sleep()
+                if(eve.body):
+                    pub1.publish(eve.msgs)
+                else:   
+                    pub2.publish(eve.rosMessage)
+            #eve.printMes()
+        q = len(self.events)
+        while(rospy.get_time() - now < self.events[q-1].time):
             rate.sleep()
 
-def talker(midiFile, midiFile2, channel):
-    
+
+def talker(midiFiles, channel):
+    print "Starting pubs"
     pub1 = rospy.Publisher('/drivers/brainstem/cmd/update_body_lights', MsgUpdateBodyLights, queue_size=30)
     pub2 = rospy.Publisher('/drivers/brainstem/cmd/update_tote_lights', MsgUpdateToteLights, queue_size=30)
     rospy.init_node('talker',anonymous=True)
-    time.sleep(2)
-    
     rate = rospy.Rate(200) # 10hz
-    print "*******************************************************************"
-    midiFile.killAll(pub1, pub2, rate,channel)
-    print "*******************************************************************"
-    now = rospy.get_time()
-
+    midiFiles[0].killAll(pub1,pub2,rate,channel)
+    print "Waiting for the mod 10"
     while(math.floor(rospy.get_time()) % 10 != 0):
-        pass
+        rate.sleep()
+    print "Starting Song"
+    i = 1
+    now = rospy.get_time()
+    for mid in midiFiles:
+        print "Starting part ", i, " at time: ", rospy.get_time()
+        mid.play(pub1,pub2,rate,channel)
+        i = i + 1
+    print "Finished at time: ", rospy.get_time()
+    midiFiles[0].killAll(pub1,pub2,rate,channel)
 
-    now = rospy.get_time()
-    print now, "       GOING"
-    for eve in midiFile.events:
-        if(eve.channel == channel):
-            while(rospy.get_time() - now < eve.time ):
-                rate.sleep()
-            pass
-            if(eve.body):
-                pub1.publish(eve.msgs)
-            else:   
-                pub2.publish(eve.rosMessage)
-            #eve.printMes()
-    q = len(midiFile.events)
-    while(rospy.get_time() - now < midiFile.events[q-1].time):
-        pass
-    now = rospy.get_time()
-    print now
-    print "*******************************************************************"
-    midiFile.killAll(pub1, pub2, rate,channel)
-    print "*******************************************************************"
-    now = rospy.get_time()
-    while(math.floor(rospy.get_time()) % 3 != 0):
-        pass
-    now = rospy.get_time()
-    print now, "       GOING"
-    for eve in midiFile2.events:
-        if(eve.channel == channel):
-            while(rospy.get_time() - now < eve.time ):
-                rate.sleep()
-            pass
-            if(eve.body):
-                pub1.publish(eve.msgs)
-            else:   
-                pub2.publish(eve.rosMessage)
-            #eve.printMes()
-    q = len(midiFile2.events)
-    while(rospy.get_time() - now < midiFile2.events[q-1].time):
-        pass
-    now = rospy.get_time()
-    print now
-    midiFile2.killAll(pub1,pub2,rate,channel)
 if __name__ == '__main__':
     channel = 0
     if len(sys.argv) == 2:
         channel = int(sys.argv[1])
-    print channel
+    print "Channel: ", channel
+    midiFiles = []
+    print "Loading data..."
     first = midiFile("firstgood.mid")
     second = midiFile("thirdgood.mid")
+    midiFiles.append(first)
+    midiFiles.append(second)
     try:
-        talker(first, second,  channel)
+        talker(midiFiles, channel)
     except rospy.ROSInterruptException:
        pass
