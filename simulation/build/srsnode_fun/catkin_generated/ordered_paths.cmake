@@ -1,0 +1,1 @@
+set(ORDERED_PATHS "/home/dimitri/mfp_workspace/devel/lib;/opt/ros/kinetic/lib")

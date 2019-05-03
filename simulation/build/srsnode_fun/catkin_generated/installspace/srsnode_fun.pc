@@ -1,0 +1,8 @@
+prefix=/home/dimitri/Learning/workspace/install
+
+Name: srsnode_fun
+Description: Description of srsnode_fun
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/dimitri/Learning/workspace/install/lib 
+Requires: 

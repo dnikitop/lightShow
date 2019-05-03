@@ -1,0 +1,2 @@
+srsnode_fun
+-DCATKIN_DEVEL_PREFIX=/home/dimitri/Learning/workspace/devel -DCMAKE_INSTALL_PREFIX=/home/dimitri/Learning/workspace/install -G Unix Makefiles

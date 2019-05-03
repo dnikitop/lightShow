@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  *
+  * (c) Copyright 2015-2017 6 River Systems, all rights reserved.
+  *
+  * This is proprietary software, unauthorized distribution is not permitted.
+  *
+-->
+
+<package>
+    <name>srsnode_fun</name>
+    <version>1.0.0</version>
+    <description>Utility nodes</description>
+    
+  <maintainer email="dimitri@todo.todo">dimitri</maintainer>
+
+
+    <license>Proprietary</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>roscpp</build_depend>
+    <run_depend>roscpp</run_depend>
+
+    <build_depend>srslib_framework</build_depend>
+    <run_depend>srslib_framework</run_depend>
+
+
+</package>
+
